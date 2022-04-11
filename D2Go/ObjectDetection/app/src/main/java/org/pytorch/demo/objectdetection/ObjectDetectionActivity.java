@@ -110,7 +110,7 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
         bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
 
         //TEXT TO SPEECH SECTION
-
+/*
         mTTS = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
@@ -128,6 +128,7 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
                 }
             }
         });
+        */
         //END TEXT TO SPEECH DEFINES
 
         final FloatBuffer floatBuffer = Tensor.allocateFloatBuffer(3 * bitmap.getWidth() * bitmap.getHeight());
@@ -175,7 +176,7 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
                 {
                     v.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE));
                     System.out.println(labelsData);
-                    speak();
+
                 }
 
             }
@@ -189,12 +190,5 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
             return new AnalysisResult(results);
         }
         return null;
-    }
-
-    private void speak() {
-        mTTS.setPitch(1);
-        mTTS.setSpeechRate(1);
-
-        mTTS.speak("Person", TextToSpeech.QUEUE_FLUSH, null);
     }
 }
