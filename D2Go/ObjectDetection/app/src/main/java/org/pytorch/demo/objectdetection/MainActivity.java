@@ -300,5 +300,4 @@ static {
         }
     }
 
-    system.out.print("gabaghool");
 }
