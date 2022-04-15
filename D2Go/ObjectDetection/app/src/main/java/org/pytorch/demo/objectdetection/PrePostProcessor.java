@@ -34,6 +34,7 @@ public class PrePostProcessor {
 
     static String[] mClasses;
 
+
     static ArrayList<Result> outputsToPredictions(int countResult, float[] outputs, float imgScaleX, float imgScaleY, float ivScaleX, float ivScaleY, float startX, float startY) {
         ArrayList<Result> results = new ArrayList<>();
         for (int i = 0; i< countResult; i++) {
@@ -50,6 +51,7 @@ public class PrePostProcessor {
             Rect rect = new Rect((int)(startX+ivScaleX*left), (int)(startY+top*ivScaleY), (int)(startX+ivScaleX*right), (int)(startY+ivScaleY*bottom));
             Result result = new Result((int)outputs[i* OUTPUT_COLUMN +5], outputs[i* OUTPUT_COLUMN +4], rect);
             results.add(result);
+
         }
         return results;
     }

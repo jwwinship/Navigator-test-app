@@ -156,7 +156,7 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
             int count = 0;
             float[] outputs = new float[n * PrePostProcessor.OUTPUT_COLUMN];
             for (int i = 0; i < n; i++) {
-                if (scoresData[i] < 0.7) //TODO: Modify score for precision (Original precision was 0.4)
+                if (scoresData[i] < 0.6) //TODO: Modify score for precision (Original precision was 0.4)
                     continue;
 
                 outputs[PrePostProcessor.OUTPUT_COLUMN * count + 0] = boxesData[4 * i + 0];
@@ -191,7 +191,7 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
                     //System.out.println(labelsData);
                 }*/
 
-                if (objectTooClose(boxesData,labelsData,scoresData.length,0))
+                if (objectTooClose(results.get(i),0))
                 {
 
                     v.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE));
@@ -215,7 +215,7 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
      * A help function that indicates if an object is too close to the user.
      * @return true if too close, false other wise
      */
-    protected boolean objectTooClose(float[] boxesData, long[] labelsData, final int numOfObjects, int classIndex){
+    /*protected boolean objectTooClose(float[] boxesData, long[] labelsData, final int numOfObjects, int classIndex){
 
         DisplayMetrics displayMetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
@@ -223,6 +223,7 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
         int width = displayMetrics.widthPixels;
 
         for (int i = 0; i < numOfObjects; i++) {
+
             // retrieve the box coordinate and the object label
             float Xmin = boxesData[4 * i + 0];
             float Ymin = boxesData[4 * i + 1];
@@ -232,16 +233,41 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
 
             // calculate the box area
             float totalArea = (Xmax - Xmin) * (Ymax - Ymin);
+            System.out.println("Total Area: " + totalArea);
 
             // calculate the screen area
             float screenSize = (float) height * width;
 
             if (label == classIndex){
-                if (totalArea > screenSize/2)return true;
+                if (totalArea > screenSize/10)return true;
             }
         }
 
         return false;
+    }*/
+
+    protected boolean objectTooClose(Result result, int classToMatch){
+
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        int screenHeight = displayMetrics.heightPixels;
+        int screenWidth = displayMetrics.widthPixels;
+
+        int height = result.rect.height();
+        int width = result.rect.width();
+
+        // calculate the box area
+        float totalArea = height * width;
+        System.out.println("Total Area: " + totalArea);
+
+        // calculate the screen area
+        float screenSize = (float) screenHeight * screenWidth;
+
+        if (result.classIndex == classToMatch) {
+            return totalArea > screenSize / 10;
+        }
+        return false;
+
     }
 
     private void speak() {
