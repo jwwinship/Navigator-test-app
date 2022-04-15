@@ -294,18 +294,6 @@ static {
                 count++;
             }
 
-            //TEST CODE, delete if not working
-            /*final int n_label = labelsData.length;
-            for (int i = 0; i<n; i++)
-            {
-                if (labelsData[i] == 1)// || labelsData[i] == 19 || labelsData[i] == 22)
-                {
-                    v.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE));
-                    System.out.println(labelsData);
-                }
-
-            }*/
-
             final ArrayList<Result> results = PrePostProcessor.outputsToPredictions(count, outputs, mImgScaleX, mImgScaleY, mIvScaleX, mIvScaleY, mStartX, mStartY);
 
             runOnUiThread(() -> {

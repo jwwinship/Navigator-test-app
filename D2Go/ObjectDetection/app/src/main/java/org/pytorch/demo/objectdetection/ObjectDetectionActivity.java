@@ -10,6 +10,7 @@ import android.graphics.YuvImage;
 import android.media.Image;
 import android.os.VibrationEffect;
 import android.util.DisplayMetrics;
+import android.speech.tts.Voice;
 import android.view.TextureView;
 import android.view.ViewStub;
 
@@ -39,14 +40,13 @@ import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Set;
 
 public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetectionActivity.AnalysisResult> {
     private Module mModule = null;
     private ResultView mResultView;
     private TextToSpeech mTTS;
-    private EditText mEditText;
-
-
+    //private EditText mEditText;
 
     static class AnalysisResult {
         private final ArrayList<Result> mResults;
@@ -111,12 +111,12 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
         bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
 
         //TEXT TO SPEECH SECTION
-/*
+
         mTTS = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
                 if (status == TextToSpeech.SUCCESS) {
-                    int result = mTTS.setLanguage(Locale.GERMAN);
+                    int result = mTTS.setLanguage(Locale.US);
 
                     if (result == TextToSpeech.LANG_MISSING_DATA
                             || result == TextToSpeech.LANG_NOT_SUPPORTED) {
@@ -129,7 +129,7 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
                 }
             }
         });
-        */
+
         //END TEXT TO SPEECH DEFINES
 
         final FloatBuffer floatBuffer = Tensor.allocateFloatBuffer(3 * bitmap.getWidth() * bitmap.getHeight());
@@ -167,7 +167,7 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
                 outputs[PrePostProcessor.OUTPUT_COLUMN * count + 5] = labelsData[i] - 1;
                 count++;
 
-
+                System.out.println("Test");
             }
 
 
@@ -184,30 +184,31 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
             for (int i = 0; i<n_label; i++)
             {
 
+
                 /*if (results.get(i).classIndex == 0 || results.get(i).classIndex == 66 )// || labelsData[i] == 19 || labelsData[i] == 22)
                 {
                     v.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE));
                     //System.out.println(labelsData);
                 }*/
 
-
                 if (objectTooClose(boxesData,labelsData,scoresData.length,0))
                 {
+
                     v.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE));
-                    //System.out.println(labelsData);
+                    speak();
                 }
 
 
             }
+            if (results.stream().noneMatch(result -> result.classIndex == 0)) mTTS.stop(); //Stop speech if no more person detected.
+
+
             System.out.println(n_label);
-
-
-
-
             return new AnalysisResult(results);
         }
         return null;
     }
+
 
     /**
      * Oliver
@@ -242,4 +243,19 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
 
         return false;
     }
+
+    private void speak() {
+        //String text = "Person";
+        CharSequence text = "Stop, person ahead!";
+        float pitch = 1f;
+        if (pitch < 0.1) pitch = 0.1f;
+        float speed = 1f;
+        if (speed < 0.1) speed = 0.1f;
+
+        mTTS.setPitch(pitch);
+        mTTS.setSpeechRate(speed);
+        if (!mTTS.isSpeaking()) mTTS.speak(text, TextToSpeech.QUEUE_FLUSH, null, null);
+
+    }
+
 }
