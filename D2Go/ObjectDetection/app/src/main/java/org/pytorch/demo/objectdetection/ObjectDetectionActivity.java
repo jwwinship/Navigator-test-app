@@ -155,7 +155,7 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
             int count = 0;
             float[] outputs = new float[n * PrePostProcessor.OUTPUT_COLUMN];
             for (int i = 0; i < n; i++) {
-                if (scoresData[i] < 0.4)
+                if (scoresData[i] < 0.7) //TODO: Modify score for precision
                     continue;
 
                 outputs[PrePostProcessor.OUTPUT_COLUMN * count + 0] = boxesData[4 * i + 0];
@@ -168,18 +168,7 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
 
 
             }
-            //TEST CODE, delete if not working
-            final int n_label = labelsData.length;
-            for (int i = 0; i<n; i++)
-            {
-                if (labelsData[i] == 1)// || labelsData[i] == 19 || labelsData[i] == 22)
-                {
-                    v.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE));
-                    System.out.println(labelsData);
 
-                }
-
-            }
 
             float imgScaleX = (float) bitmap.getWidth() / PrePostProcessor.INPUT_WIDTH;
             float imgScaleY = (float) bitmap.getHeight() / PrePostProcessor.INPUT_HEIGHT;
@@ -187,6 +176,24 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
             float ivScaleY = (float) mResultView.getHeight() / bitmap.getHeight();
 
             final ArrayList<Result> results = PrePostProcessor.outputsToPredictions(count, outputs, imgScaleX, imgScaleY, ivScaleX, ivScaleY, 0, 0);
+            //TODO: TEST LOCATION
+            //TEST CODE, delete if not working
+            final int n_label = results.size();
+            for (int i = 0; i<n_label; i++)
+            {
+
+                if (results.get(i).classIndex == 0 || results.get(i).classIndex == 66 )// || labelsData[i] == 19 || labelsData[i] == 22)
+                {
+                    v.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE));
+                    //System.out.println(labelsData);
+                }
+
+            }
+            System.out.println(n_label);
+
+
+
+
             return new AnalysisResult(results);
         }
         return null;
