@@ -21,6 +21,7 @@ import android.os.SystemClock;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.provider.MediaStore;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -259,6 +260,11 @@ static {
             scoresData = scoresTensor.getDataAsFloatArray();
             labelsData = labelsTensor.getDataAsLongArray();
 
+            DisplayMetrics displayMetrics = new DisplayMetrics();
+            getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+            int height = displayMetrics.heightPixels;
+            int width = displayMetrics.widthPixels;
+
             final int n = scoresData.length;
             float[] outputs = new float[n * PrePostProcessor.OUTPUT_COLUMN];
             int count = 0;
@@ -276,9 +282,13 @@ static {
                 System.out.println("S-----------------------------------------------------------------------------------------S");
                 System.out.println(labelsData[i]);
                 System.out.println("Xmin:"+boxesData[4 * i + 0]);
-                System.out.println("Ymin"+boxesData[4 * i + 1]);
-                System.out.println("Xmax"+boxesData[4 * i + 2]);
-                System.out.println("Ymax"+boxesData[4 * i + 3]);
+                System.out.println("Ymin:"+boxesData[4 * i + 1]);
+                System.out.println("Xmax:"+boxesData[4 * i + 2]);
+                System.out.println("Ymax:"+boxesData[4 * i + 3]);
+                float screenSize = (float) height * width;
+                System.out.println("Height:"+height);
+                System.out.println("Width"+width);
+                System.out.println("Screen Size:"+ screenSize);
                 System.out.println("S-----------------------------------------------------------------------------------------S");
 
                 count++;

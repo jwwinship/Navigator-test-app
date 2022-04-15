@@ -9,6 +9,7 @@ import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.media.Image;
 import android.os.VibrationEffect;
+import android.util.DisplayMetrics;
 import android.view.TextureView;
 import android.view.ViewStub;
 
@@ -155,7 +156,7 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
             int count = 0;
             float[] outputs = new float[n * PrePostProcessor.OUTPUT_COLUMN];
             for (int i = 0; i < n; i++) {
-                if (scoresData[i] < 0.7) //TODO: Modify score for precision
+                if (scoresData[i] < 0.7) //TODO: Modify score for precision (Original precision was 0.4)
                     continue;
 
                 outputs[PrePostProcessor.OUTPUT_COLUMN * count + 0] = boxesData[4 * i + 0];
@@ -178,15 +179,24 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
             final ArrayList<Result> results = PrePostProcessor.outputsToPredictions(count, outputs, imgScaleX, imgScaleY, ivScaleX, ivScaleY, 0, 0);
             //TODO: TEST LOCATION
             //TEST CODE, delete if not working
+
             final int n_label = results.size();
             for (int i = 0; i<n_label; i++)
             {
 
-                if (results.get(i).classIndex == 0 || results.get(i).classIndex == 66 )// || labelsData[i] == 19 || labelsData[i] == 22)
+                /*if (results.get(i).classIndex == 0 || results.get(i).classIndex == 66 )// || labelsData[i] == 19 || labelsData[i] == 22)
+                {
+                    v.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE));
+                    //System.out.println(labelsData);
+                }*/
+
+
+                if (objectTooClose(boxesData,labelsData,scoresData.length,0))
                 {
                     v.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE));
                     //System.out.println(labelsData);
                 }
+
 
             }
             System.out.println(n_label);
@@ -197,5 +207,39 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
             return new AnalysisResult(results);
         }
         return null;
+    }
+
+    /**
+     * Oliver
+     * A help function that indicates if an object is too close to the user.
+     * @return true if too close, false other wise
+     */
+    protected boolean objectTooClose(float[] boxesData, long[] labelsData, final int numOfObjects, int classIndex){
+
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        int height = displayMetrics.heightPixels;
+        int width = displayMetrics.widthPixels;
+
+        for (int i = 0; i < numOfObjects; i++) {
+            // retrieve the box coordinate and the object label
+            float Xmin = boxesData[4 * i + 0];
+            float Ymin = boxesData[4 * i + 1];
+            float Xmax = boxesData[4 * i + 2];
+            float Ymax = boxesData[4 * i + 3];
+            long label = labelsData[i] - 1; // minus one to match up with the class index
+
+            // calculate the box area
+            float totalArea = (Xmax - Xmin) * (Ymax - Ymin);
+
+            // calculate the screen area
+            float screenSize = (float) height * width;
+
+            if (label == classIndex){
+                if (totalArea > screenSize/2)return true;
+            }
+        }
+
+        return false;
     }
 }
