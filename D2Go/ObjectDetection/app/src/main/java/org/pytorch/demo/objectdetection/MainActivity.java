@@ -272,6 +272,15 @@ static {
                 outputs[PrePostProcessor.OUTPUT_COLUMN * count + 3] = boxesData[4 * i + 3];
                 outputs[PrePostProcessor.OUTPUT_COLUMN * count + 4] = scoresData[i];
                 outputs[PrePostProcessor.OUTPUT_COLUMN * count + 5] = labelsData[i] - 1;
+
+                System.out.println("S-----------------------------------------------------------------------------------------S");
+                System.out.println(labelsData[i]);
+                System.out.println("Xmin:"+boxesData[4 * i + 0]);
+                System.out.println("Ymin"+boxesData[4 * i + 1]);
+                System.out.println("Xmax"+boxesData[4 * i + 2]);
+                System.out.println("Ymax"+boxesData[4 * i + 3]);
+                System.out.println("S-----------------------------------------------------------------------------------------S");
+
                 count++;
             }
 
