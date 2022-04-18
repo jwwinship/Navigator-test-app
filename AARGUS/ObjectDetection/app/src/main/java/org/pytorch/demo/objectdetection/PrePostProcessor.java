@@ -9,6 +9,7 @@ package org.pytorch.demo.objectdetection;
 import android.graphics.Rect;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 class Result {
     int classIndex;
@@ -33,14 +34,18 @@ public class PrePostProcessor {
     public final static int OUTPUT_COLUMN = 6; // left, top, right, bottom, score and label
 
     static String[] mClasses;
+    static int[] classesToDetect = new int[]{0,61,68};
 
 
     static ArrayList<Result> outputsToPredictions(int countResult, float[] outputs, float imgScaleX, float imgScaleY, float ivScaleX, float ivScaleY, float startX, float startY) {
         ArrayList<Result> results = new ArrayList<>();
         for (int i = 0; i< countResult; i++) {
 
-            if (outputs[i* OUTPUT_COLUMN +5] != 0) //TODO: This is where we decide which classes we want to detect.
+            int finalI = i;
+            if (Arrays.stream(classesToDetect).noneMatch(n-> n==outputs[finalI*OUTPUT_COLUMN +5]))
                 continue;
+            /*if (outputs[i* OUTPUT_COLUMN +5] != 0 ) //TODO: This is where we decide which classes we want to detect.
+                continue;*/
 
             float left = outputs[i* OUTPUT_COLUMN];
             float top = outputs[i* OUTPUT_COLUMN +1];
