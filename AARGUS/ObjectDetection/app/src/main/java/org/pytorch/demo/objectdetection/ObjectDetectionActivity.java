@@ -174,7 +174,7 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
             {
 
                 float boxSizeRatio = getObjectSizeRatio(results.get(i),0);
-                if (boxSizeRatio > 0.125) //If result is greater than 1/8 of total screen
+                if (boxSizeRatio > 0.125 && withinBox(results.get(i))) //If result is greater than 1/8 of total screen
                 {
                     v.vibrate(VibrationEffect.createOneShot((int)(1000 * boxSizeRatio), (int)(255*boxSizeRatio)));
                     speak();
@@ -190,36 +190,6 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
         }
         return null;
     }
-
-
-    /**
-     * Oliver
-     * A help function that indicates if an object is too close to the user.
-     * @return true if too close, false other wise
-     */
-    /*protected boolean objectTooClose(Result result, int classToMatch){
-
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-        int screenHeight = displayMetrics.heightPixels;
-        int screenWidth = displayMetrics.widthPixels;
-
-        int height = result.rect.height();
-        int width = result.rect.width();
-
-        // calculate the box area
-        float totalArea = height * width;
-        System.out.println("Total Area: " + totalArea);
-
-        // calculate the screen area
-        float screenSize = (float) screenHeight * screenWidth;
-
-        if (result.classIndex == classToMatch) {
-            return totalArea > screenSize / 8;
-        }
-        return false;
-
-    }*/
 
     /**
      *
@@ -250,6 +220,25 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
         }
         return -1f;
     }
+
+    private boolean withinBox(Result result){
+        // check if the object is within the box
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        int screenHeight = displayMetrics.heightPixels;
+        int screenWidth = displayMetrics.widthPixels;
+
+        // set up the virtual box
+        Utilities helper = new Utilities();
+        Rect VB = helper.setupVirtualBox(screenHeight,screenWidth);
+
+        // getting the center points of the result rect
+        int resultCenterX = result.rect.centerX();
+        int resultCenterY = result.rect.centerY();
+
+        return VB.contains(resultCenterX,resultCenterY);
+    }
+
 
     private void speak() {
         //String text = "Person";
