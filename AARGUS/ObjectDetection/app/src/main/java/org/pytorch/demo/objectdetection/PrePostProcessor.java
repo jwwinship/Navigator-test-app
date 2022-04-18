@@ -38,6 +38,10 @@ public class PrePostProcessor {
     static ArrayList<Result> outputsToPredictions(int countResult, float[] outputs, float imgScaleX, float imgScaleY, float ivScaleX, float ivScaleY, float startX, float startY) {
         ArrayList<Result> results = new ArrayList<>();
         for (int i = 0; i< countResult; i++) {
+
+            if (outputs[i* OUTPUT_COLUMN +5] != 0) //TODO: This is where we decide which classes we want to detect.
+                continue;
+
             float left = outputs[i* OUTPUT_COLUMN];
             float top = outputs[i* OUTPUT_COLUMN +1];
             float right = outputs[i* OUTPUT_COLUMN +2];
@@ -50,6 +54,8 @@ public class PrePostProcessor {
 
             Rect rect = new Rect((int)(startX+ivScaleX*left), (int)(startY+top*ivScaleY), (int)(startX+ivScaleX*right), (int)(startY+ivScaleY*bottom));
             Result result = new Result((int)outputs[i* OUTPUT_COLUMN +5], outputs[i* OUTPUT_COLUMN +4], rect);
+
+
             results.add(result);
 
         }
