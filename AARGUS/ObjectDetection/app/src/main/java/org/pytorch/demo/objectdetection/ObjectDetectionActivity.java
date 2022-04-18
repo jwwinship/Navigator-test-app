@@ -162,8 +162,8 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
             }
 
 
-            float imgScaleX = (float) bitmap.getWidth() / PrePostProcessor.INPUT_WIDTH;
-            float imgScaleY = (float) bitmap.getHeight() / PrePostProcessor.INPUT_HEIGHT;
+            float imgScaleX = 1; //(float) bitmap.getWidth() / PrePostProcessor.INPUT_WIDTH;
+            float imgScaleY = 1; //(float) bitmap.getHeight() / PrePostProcessor.INPUT_HEIGHT;
             float ivScaleX = (float) mResultView.getWidth() / bitmap.getWidth();
             float ivScaleY = (float) mResultView.getHeight() / bitmap.getHeight();
 
