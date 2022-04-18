@@ -174,10 +174,10 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
             {
 
                 float boxSizeRatio = getObjectSizeRatio(results.get(i),0);
-                if (boxSizeRatio > 0.125 && withinBox(results.get(i))) //If result is greater than 1/8 of total screen
+                if (boxSizeRatio > 0.17 && withinBox(results.get(i))) //If result is greater than 1/6 of total screen
                 {
                     v.vibrate(VibrationEffect.createOneShot((int)(1000 * boxSizeRatio), (int)(255*boxSizeRatio)));
-                    speak();
+                    speak(getDirection(results.get(i)));
                 }
 
 
@@ -239,10 +239,44 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
         return VB.contains(resultCenterX,resultCenterY);
     }
 
+    private int getDirection(Result result){
+        // set up the virtual box
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        int screenHeight = displayMetrics.heightPixels;
+        int screenWidth = displayMetrics.widthPixels;
+        Utilities helper = new Utilities();
+        Rect VB = helper.setupVirtualBox(screenHeight,screenWidth);
+        int boxCenterX = VB.centerX();
 
-    private void speak() {
+        // getting the center points of the result rect
+        int resultCenterX = result.rect.centerX();
+
+        // set up middle section width
+        int middleLeft = boxCenterX - 60;
+        int middleRight = boxCenterX + 60;
+
+        // check if the center is on the left side or right side of the box or in the middle
+        // 0: middle  1: left  2: right
+        if (resultCenterX >= middleLeft && resultCenterX <= middleRight){
+            return 0;
+        }
+        else if (resultCenterX < middleLeft) return 1;
+        else return 2;
+    }
+
+    private void speak(int direction) {
         //String text = "Person";
-        CharSequence text = "Stop, person ahead!";
+        CharSequence text = "";
+        // right in front
+        if (direction == 0) text = "Stop, person ahead!";
+
+        // on left
+        else if (direction == 1) text = "person on left!";
+
+        // on right
+        else text = "person on right!";
+
         float pitch = 1f;
         if (pitch < 0.1) pitch = 0.1f;
         float speed = 1f;
