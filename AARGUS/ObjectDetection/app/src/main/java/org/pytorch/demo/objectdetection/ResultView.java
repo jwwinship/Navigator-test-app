@@ -11,9 +11,11 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.View;
+
 
 import java.util.ArrayList;
 
@@ -45,6 +47,27 @@ public class ResultView extends View {
         super.onDraw(canvas);
 
         if (mResults == null) return;
+
+        // drawing the virtual box
+        mPaintRectangle.setStrokeWidth(5);
+        mPaintRectangle.setStyle(Paint.Style.STROKE);
+        Utilities helper = new Utilities();
+        Rect VB = helper.setupVirtualBox(1977,1080);
+        canvas.drawRect(VB,mPaintRectangle);
+
+        Path mPath_VB = new Path();
+        RectF mRectF_VB = new RectF(VB.left, VB.top, VB.left + TEXT_WIDTH,  VB.top + TEXT_HEIGHT);
+        mPath_VB.addRect(mRectF_VB, Path.Direction.CW);
+        mPaintText.setColor(Color.MAGENTA);
+        canvas.drawPath(mPath_VB, mPaintText);
+
+        mPaintText.setColor(Color.WHITE);
+        mPaintText.setStrokeWidth(0);
+        mPaintText.setStyle(Paint.Style.FILL);
+        mPaintText.setTextSize(32);
+        canvas.drawText("Virtual Box", VB.left + TEXT_X, VB.top + TEXT_Y, mPaintText);
+        System.out.println("__________________________________________Test");
+
         for (Result result : mResults) {
             mPaintRectangle.setStrokeWidth(5);
             mPaintRectangle.setStyle(Paint.Style.STROKE);
@@ -63,7 +86,6 @@ public class ResultView extends View {
             canvas.drawText(String.format("%s %.2f", PrePostProcessor.mClasses[result.classIndex], result.score), result.rect.left + TEXT_X, result.rect.top + TEXT_Y, mPaintText);
         }
     }
-
     public void setResults(ArrayList<Result> results) {
         mResults = results;
     }

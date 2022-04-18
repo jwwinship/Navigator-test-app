@@ -28,6 +28,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 
+
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -265,6 +266,11 @@ static {
             int height = displayMetrics.heightPixels;
             int width = displayMetrics.widthPixels;
 
+            System.out.println("___________________________________________Test");
+            System.out.println("screenHeight:"+height);
+            System.out.println("screenWidth:"+width);
+
+
             final int n = scoresData.length;
             float[] outputs = new float[n * PrePostProcessor.OUTPUT_COLUMN];
             int count = 0;
@@ -278,22 +284,8 @@ static {
                 outputs[PrePostProcessor.OUTPUT_COLUMN * count + 3] = boxesData[4 * i + 3];
                 outputs[PrePostProcessor.OUTPUT_COLUMN * count + 4] = scoresData[i];
                 outputs[PrePostProcessor.OUTPUT_COLUMN * count + 5] = labelsData[i] - 1;
-
-                System.out.println("S-----------------------------------------------------------------------------------------S");
-                System.out.println(labelsData[i]);
-                System.out.println("Xmin:"+boxesData[4 * i + 0]);
-                System.out.println("Ymin:"+boxesData[4 * i + 1]);
-                System.out.println("Xmax:"+boxesData[4 * i + 2]);
-                System.out.println("Ymax:"+boxesData[4 * i + 3]);
-                float screenSize = (float) height * width;
-                System.out.println("Height:"+height);
-                System.out.println("Width"+width);
-                System.out.println("Screen Size:"+ screenSize);
-                System.out.println("S-----------------------------------------------------------------------------------------S");
-
                 count++;
             }
-
             final ArrayList<Result> results = PrePostProcessor.outputsToPredictions(count, outputs, mImgScaleX, mImgScaleY, mIvScaleX, mIvScaleY, mStartX, mStartY);
 
             runOnUiThread(() -> {

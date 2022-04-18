@@ -161,7 +161,6 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
                 System.out.println("Test");
             }
 
-
             float imgScaleX = (float) bitmap.getWidth() / PrePostProcessor.INPUT_WIDTH;
             float imgScaleY = (float) bitmap.getHeight() / PrePostProcessor.INPUT_HEIGHT;
             float ivScaleX = (float) mResultView.getWidth() / bitmap.getWidth();
@@ -251,11 +250,19 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
         float totalArea = height * width;
         System.out.println("Total Area: " + totalArea);
 
+        // set up the virtual box
+        Utilities helper = new Utilities();
+        Rect VB = helper.setupVirtualBox(screenHeight,screenWidth);
+
         // calculate the screen area
         float screenSize = (float) screenHeight * screenWidth;
 
         if (result.classIndex == classToMatch) {
-            return totalArea > screenSize / 10;
+            /**
+             * Oliver
+             * Change from "screenSize / 10" to "screenSize / 8"
+             */
+            return totalArea > screenSize / 8;
         }
         return false;
 
