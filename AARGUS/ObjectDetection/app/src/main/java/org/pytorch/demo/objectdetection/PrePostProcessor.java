@@ -57,10 +57,12 @@ public class PrePostProcessor {
             right = imgScaleX * right;
             bottom = imgScaleY * bottom;
 
+            float horShift = (right-left)/3;//Boxes are drawn inaccurately, usually shifted significantly to the left. We need to manually adjust until we can figure out why boxes are shifted
+            left += horShift;
+            right += horShift;
+
             Rect rect = new Rect((int)(startX+ivScaleX*left), (int)(startY+top*ivScaleY), (int)(startX+ivScaleX*right), (int)(startY+ivScaleY*bottom));
             Result result = new Result((int)outputs[i* OUTPUT_COLUMN +5], outputs[i* OUTPUT_COLUMN +4], rect);
-
-
             results.add(result);
 
         }
