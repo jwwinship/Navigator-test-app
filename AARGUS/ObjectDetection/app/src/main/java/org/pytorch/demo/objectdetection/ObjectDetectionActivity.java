@@ -133,7 +133,7 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
         float[] scoresData = new float[]{};
         long[] labelsData = new long[]{};
 
-        Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE); //TODO: Vibrator initialization
+        Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
         if (map.containsKey("boxes")) {
             final Tensor boxesTensor = map.get("boxes").toTensor();
@@ -161,30 +161,22 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
                 System.out.println("Test");
             }
 
+
             float imgScaleX = (float) bitmap.getWidth() / PrePostProcessor.INPUT_WIDTH;
             float imgScaleY = (float) bitmap.getHeight() / PrePostProcessor.INPUT_HEIGHT;
             float ivScaleX = (float) mResultView.getWidth() / bitmap.getWidth();
             float ivScaleY = (float) mResultView.getHeight() / bitmap.getHeight();
 
             final ArrayList<Result> results = PrePostProcessor.outputsToPredictions(count, outputs, imgScaleX, imgScaleY, ivScaleX, ivScaleY, 0, 0);
-            //TODO: TEST LOCATION
-            //TEST CODE, delete if not working
 
             final int n_label = results.size();
             for (int i = 0; i<n_label; i++)
             {
 
-
-                /*if (results.get(i).classIndex == 0 || results.get(i).classIndex == 66 )// || labelsData[i] == 19 || labelsData[i] == 22)
+                float boxSizeRatio = getObjectSizeRatio(results.get(i),0);
+                if (boxSizeRatio > 0.125) //If result is greater than 1/8 of total screen
                 {
-                    v.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE));
-                    //System.out.println(labelsData);
-                }*/
-
-                if (objectTooClose(results.get(i),0))
-                {
-
-                    v.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE));
+                    v.vibrate(VibrationEffect.createOneShot((int)(1000 * boxSizeRatio), (int)(255*boxSizeRatio)));
                     speak();
                 }
 
@@ -205,38 +197,7 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
      * A help function that indicates if an object is too close to the user.
      * @return true if too close, false other wise
      */
-    /*protected boolean objectTooClose(float[] boxesData, long[] labelsData, final int numOfObjects, int classIndex){
-
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-        int height = displayMetrics.heightPixels;
-        int width = displayMetrics.widthPixels;
-
-        for (int i = 0; i < numOfObjects; i++) {
-
-            // retrieve the box coordinate and the object label
-            float Xmin = boxesData[4 * i + 0];
-            float Ymin = boxesData[4 * i + 1];
-            float Xmax = boxesData[4 * i + 2];
-            float Ymax = boxesData[4 * i + 3];
-            long label = labelsData[i] - 1; // minus one to match up with the class index
-
-            // calculate the box area
-            float totalArea = (Xmax - Xmin) * (Ymax - Ymin);
-            System.out.println("Total Area: " + totalArea);
-
-            // calculate the screen area
-            float screenSize = (float) height * width;
-
-            if (label == classIndex){
-                if (totalArea > screenSize/10)return true;
-            }
-        }
-
-        return false;
-    }*/
-
-    protected boolean objectTooClose(Result result, int classToMatch){
+    /*protected boolean objectTooClose(Result result, int classToMatch){
 
         DisplayMetrics displayMetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
@@ -250,22 +211,44 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
         float totalArea = height * width;
         System.out.println("Total Area: " + totalArea);
 
-        // set up the virtual box
-        Utilities helper = new Utilities();
-        Rect VB = helper.setupVirtualBox(screenHeight,screenWidth);
+        // calculate the screen area
+        float screenSize = (float) screenHeight * screenWidth;
+
+        if (result.classIndex == classToMatch) {
+            return totalArea > screenSize / 8;
+        }
+        return false;
+
+    }*/
+
+    /**
+     *
+     * Determines the ratio of the size of the detected object to the size of the device screen. Used to approximate how close an object is to the user.
+     * @param result The object prediction who's size we want to evaluate
+     * @param classToMatch The class of the object we want to test against. Will be obsolete once code is changed to only recognize useful classes.
+     * @return the ratio of the object size to the screen size. Will be a float value between 0 and 1. Returns -1 if something goes wrong.
+     */
+    protected float getObjectSizeRatio(Result result, int classToMatch) {
+
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        int screenHeight = displayMetrics.heightPixels;
+        int screenWidth = displayMetrics.widthPixels;
+
+        int height = result.rect.height();
+        int width = result.rect.width();
+
+        // calculate the box area
+        float totalArea = height * width;
+        System.out.println("Total Area: " + totalArea);
 
         // calculate the screen area
         float screenSize = (float) screenHeight * screenWidth;
 
         if (result.classIndex == classToMatch) {
-            /**
-             * Oliver
-             * Change from "screenSize / 10" to "screenSize / 8"
-             */
-            return totalArea > screenSize / 8;
+            return totalArea / screenSize;
         }
-        return false;
-
+        return -1f;
     }
 
     private void speak() {
