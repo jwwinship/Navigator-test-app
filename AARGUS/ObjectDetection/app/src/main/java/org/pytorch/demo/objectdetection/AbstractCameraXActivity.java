@@ -8,6 +8,7 @@ package org.pytorch.demo.objectdetection;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.hardware.camera2.CameraMetadata;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.Size;
@@ -17,6 +18,7 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
 import androidx.annotation.WorkerThread;
+import androidx.camera.camera2.impl.Camera2CameraCaptureResultConverter;
 import androidx.camera.core.CameraX;
 import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageAnalysisConfig;
