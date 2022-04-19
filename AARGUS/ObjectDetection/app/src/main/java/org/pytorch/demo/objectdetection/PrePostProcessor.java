@@ -34,7 +34,7 @@ public class PrePostProcessor {
     public final static int OUTPUT_COLUMN = 6; // left, top, right, bottom, score and label
 
     static String[] mClasses;
-    static int[] classesToDetect = new int[]{0,61,68};
+    static int[] classesToDetect = new int[]{0,61,68}; // 0:person, 61:chair, 68:potted plant
 
 
     static ArrayList<Result> outputsToPredictions(int countResult, float[] outputs, float imgScaleX, float imgScaleY, float ivScaleX, float ivScaleY, float startX, float startY) {
