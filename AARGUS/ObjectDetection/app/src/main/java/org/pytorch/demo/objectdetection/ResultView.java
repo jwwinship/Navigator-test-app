@@ -30,6 +30,7 @@ public class ResultView extends View {
     private Paint mPaintRectangle;
     private Paint mPaintText;
     private ArrayList<Result> mResults;
+    private Rect VB;
 
     public ResultView(Context context) {
         super(context);
@@ -49,44 +50,35 @@ public class ResultView extends View {
         if (mResults == null) return;
 
         // drawing the virtual box
+        drawBox(canvas,VB,"Virtual Box");
+
+        // drawing the bounding boxes for each result along with its scores and class type
+        for (Result result : mResults) {
+            drawBox(canvas,result.rect,String.format("%s %.2f", PrePostProcessor.mClasses[result.classIndex], result.score));
+        }
+    }
+
+    private void drawBox(Canvas canvas, Rect box,String text){
         mPaintRectangle.setStrokeWidth(5);
         mPaintRectangle.setStyle(Paint.Style.STROKE);
-        Utilities helper = new Utilities();
-        Rect VB = helper.setupVirtualBox(1977,1080);
-        canvas.drawRect(VB,mPaintRectangle);
+        canvas.drawRect(box,mPaintRectangle);
 
-        Path mPath_VB = new Path();
-        RectF mRectF_VB = new RectF(VB.left, VB.top, VB.left + TEXT_WIDTH,  VB.top + TEXT_HEIGHT);
-        mPath_VB.addRect(mRectF_VB, Path.Direction.CW);
+        Path mPath = new Path();
+        RectF mRectF = new RectF(box.left, box.top, box.left + TEXT_WIDTH,  box.top + TEXT_HEIGHT);
+        mPath.addRect(mRectF, Path.Direction.CW);
         mPaintText.setColor(Color.MAGENTA);
-        canvas.drawPath(mPath_VB, mPaintText);
+        canvas.drawPath(mPath, mPaintText);
 
         mPaintText.setColor(Color.WHITE);
         mPaintText.setStrokeWidth(0);
         mPaintText.setStyle(Paint.Style.FILL);
         mPaintText.setTextSize(32);
-        canvas.drawText("Virtual Box", VB.left + TEXT_X, VB.top + TEXT_Y, mPaintText);
-        System.out.println("__________________________________________Test");
+        canvas.drawText(text, box.left + TEXT_X, box.top + TEXT_Y, mPaintText);
 
-        for (Result result : mResults) {
-            mPaintRectangle.setStrokeWidth(5);
-            mPaintRectangle.setStyle(Paint.Style.STROKE);
-            canvas.drawRect(result.rect, mPaintRectangle);
-
-            Path mPath = new Path();
-            RectF mRectF = new RectF(result.rect.left, result.rect.top, result.rect.left + TEXT_WIDTH,  result.rect.top + TEXT_HEIGHT);
-            mPath.addRect(mRectF, Path.Direction.CW);
-            mPaintText.setColor(Color.MAGENTA);
-            canvas.drawPath(mPath, mPaintText);
-
-            mPaintText.setColor(Color.WHITE);
-            mPaintText.setStrokeWidth(0);
-            mPaintText.setStyle(Paint.Style.FILL);
-            mPaintText.setTextSize(32);
-            canvas.drawText(String.format("%s %.2f", PrePostProcessor.mClasses[result.classIndex], result.score), result.rect.left + TEXT_X, result.rect.top + TEXT_Y, mPaintText);
-        }
     }
+
     public void setResults(ArrayList<Result> results) {
         mResults = results;
     }
+    public void setBox(Rect box){VB = box;}
 }

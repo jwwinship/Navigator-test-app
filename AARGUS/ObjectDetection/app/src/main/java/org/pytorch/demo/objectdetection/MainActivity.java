@@ -15,6 +15,7 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -261,15 +262,13 @@ static {
             scoresData = scoresTensor.getDataAsFloatArray();
             labelsData = labelsTensor.getDataAsLongArray();
 
+            // set up virtual box
             DisplayMetrics displayMetrics = new DisplayMetrics();
             getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
             int height = displayMetrics.heightPixels;
             int width = displayMetrics.widthPixels;
-
-            System.out.println("___________________________________________Test");
-            System.out.println("screenHeight:"+height);
-            System.out.println("screenWidth:"+width);
-
+            Utilities helper = new Utilities();
+            Rect VB = helper.setupVirtualBox(height,width);
 
             final int n = scoresData.length;
             float[] outputs = new float[n * PrePostProcessor.OUTPUT_COLUMN];
@@ -293,6 +292,7 @@ static {
                 mButtonDetect.setText(getString(R.string.detect));
                 mProgressBar.setVisibility(ProgressBar.INVISIBLE);
                 mResultView.setResults(results);
+                mResultView.setBox(VB);
                 mResultView.invalidate();
                 mResultView.setVisibility(View.VISIBLE);
             });

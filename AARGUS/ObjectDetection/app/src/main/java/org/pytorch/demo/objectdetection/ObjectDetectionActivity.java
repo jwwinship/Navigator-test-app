@@ -64,6 +64,8 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
 
     @Override
     protected void applyToUiAnalyzeImageResult(AnalysisResult result) {
+        Rect VB  = getVirtualBox();
+        mResultView.setBox(VB);
         mResultView.setResults(result.mResults);
         mResultView.invalidate();
     }
@@ -161,7 +163,7 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
                 System.out.println("Test");
             }
 
-
+            // getting rid of the shifting box by giving up the scaling
             float imgScaleX = 1; //(float) bitmap.getWidth() / PrePostProcessor.INPUT_WIDTH;
             float imgScaleY = 1; //(float) bitmap.getHeight() / PrePostProcessor.INPUT_HEIGHT;
             float ivScaleX = (float) mResultView.getWidth() / bitmap.getWidth();
@@ -223,14 +225,8 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
 
     private boolean withinBox(Result result){
         // check if the object is within the box
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-        int screenHeight = displayMetrics.heightPixels;
-        int screenWidth = displayMetrics.widthPixels;
-
         // set up the virtual box
-        Utilities helper = new Utilities();
-        Rect VB = helper.setupVirtualBox(screenHeight,screenWidth);
+        Rect VB = getVirtualBox();
 
         // getting the center points of the result rect
         int resultCenterX = result.rect.centerX();
@@ -241,20 +237,15 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
 
     private int getDirection(Result result){
         // set up the virtual box
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-        int screenHeight = displayMetrics.heightPixels;
-        int screenWidth = displayMetrics.widthPixels;
-        Utilities helper = new Utilities();
-        Rect VB = helper.setupVirtualBox(screenHeight,screenWidth);
+        Rect VB = getVirtualBox();
         int boxCenterX = VB.centerX();
 
         // getting the center points of the result rect
         int resultCenterX = result.rect.centerX();
 
-        // set up middle section width
-        int middleLeft = boxCenterX - 60;
-        int middleRight = boxCenterX + 60;
+        // set up middle section width (the middle area is set to 100x2 pixels wide)
+        int middleLeft = boxCenterX - 100;
+        int middleRight = boxCenterX + 100;
 
         // check if the center is on the left side or right side of the box or in the middle
         // 0: middle  1: left  2: right
@@ -286,6 +277,15 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
         mTTS.setSpeechRate(speed);
         if (!mTTS.isSpeaking()) mTTS.speak(text, TextToSpeech.QUEUE_FLUSH, null, null);
 
+    }
+
+    private Rect getVirtualBox(){
+        Utilities helper = new Utilities();
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        int screenHeight = displayMetrics.heightPixels;
+        int screenWidth = displayMetrics.widthPixels;
+        return helper.setupVirtualBox(screenHeight,screenWidth);
     }
 
 }
