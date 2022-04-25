@@ -14,6 +14,12 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+/**
+ * class BaseModuleActivity
+ * handles various activities from the base module
+ * extends from AppCompatActivity
+ * Friendly Reminder: This class is a standard modular setup, you don't wanna touch this unless necessary
+ */
 public class BaseModuleActivity extends AppCompatActivity {
     protected HandlerThread mBackgroundThread;
     protected Handler mBackgroundHandler;

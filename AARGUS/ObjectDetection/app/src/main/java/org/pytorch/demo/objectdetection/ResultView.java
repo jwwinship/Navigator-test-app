@@ -19,7 +19,11 @@ import android.view.View;
 
 import java.util.ArrayList;
 
-
+/**
+ * class ResultView
+ * handles the display of all results
+ * extends from View
+ */
 public class ResultView extends View {
 
     private final static int TEXT_X = 40;
@@ -58,6 +62,12 @@ public class ResultView extends View {
         }
     }
 
+    /**
+     * a helper function to draw a box with desired texts (with the same style as well)
+     * @param canvas target canvas
+     * @param box the bounding box
+     * @param text desired text
+     */
     private void drawBox(Canvas canvas, Rect box,String text){
         mPaintRectangle.setStrokeWidth(5);
         mPaintRectangle.setStyle(Paint.Style.STROKE);

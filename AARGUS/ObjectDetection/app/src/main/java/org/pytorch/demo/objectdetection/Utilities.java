@@ -4,10 +4,13 @@ import android.graphics.Rect;
 
 import java.util.ArrayList;
 
+/**
+ * class Utilities
+ * a helper class that holds some of the helper functions
+ */
 public class Utilities {
 
     /**
-     * Oliver
      * setup a virtual box in the middle of the screen for detection purpose
      * The box takes up 1/4 of the total screen size and is located in the exact center of the screen
      * @param screenHeight
