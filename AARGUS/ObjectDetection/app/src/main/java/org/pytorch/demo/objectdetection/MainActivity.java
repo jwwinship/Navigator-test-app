@@ -54,12 +54,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * class MainActivity
+ * handles all main application activities (create, UI ,and etc.)
+ */
 public class MainActivity extends AppCompatActivity implements Runnable {
 
 static {
     if (!NativeLoader.isInitialized()) {
         NativeLoader.init(new SystemDelegate());
     }
+    // loading pytorch and torchvision
     NativeLoader.loadLibrary("pytorch_jni");
     NativeLoader.loadLibrary("torchvision_ops");
 }
@@ -101,6 +106,7 @@ static {
         mResultView = findViewById(R.id.resultView);
         mResultView.setVisibility(View.INVISIBLE);
 
+        // handles the "Test Image" button
         final Button buttonTest = findViewById(R.id.testButton);
         buttonTest.setText(("Test Image 1/3"));
         buttonTest.setOnClickListener(new View.OnClickListener() {
@@ -119,7 +125,7 @@ static {
             }
         });
 
-
+        // handles "Select" button
         final Button buttonSelect = findViewById(R.id.selectButton);
         buttonSelect.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -149,6 +155,7 @@ static {
             }
         });
 
+        // handles "Live" button
         final Button buttonLive = findViewById(R.id.liveButton);
         buttonLive.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -180,6 +187,7 @@ static {
         });
 
         try {
+            // try quantized d2go model
             mModule = PyTorchAndroid.loadModuleFromAsset(getAssets(), "d2go.pt");
 
             BufferedReader br = new BufferedReader(new InputStreamReader(getAssets().open("classes.txt")));
@@ -285,8 +293,11 @@ static {
                 outputs[PrePostProcessor.OUTPUT_COLUMN * count + 5] = labelsData[i] - 1;
                 count++;
             }
+
+            // finalize all the results and store them in an array list
             final ArrayList<Result> results = PrePostProcessor.outputsToPredictions(count, outputs, mImgScaleX, mImgScaleY, mIvScaleX, mIvScaleY, mStartX, mStartY);
 
+            // execution order of the different threads
             runOnUiThread(() -> {
                 mButtonDetect.setEnabled(true);
                 mButtonDetect.setText(getString(R.string.detect));

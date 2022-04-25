@@ -35,6 +35,11 @@ import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.Map;
 
+/**
+ * class ObjectDetectionActivity
+ * handles all the object detection tasks
+ * Friend Reminder: Here is where the magic happens
+ */
 public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetectionActivity.AnalysisResult> {
     private Module mModule = null;
     private ResultView mResultView;
@@ -131,9 +136,9 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
 
         IValue[] outputTuple = mModule.forward(IValue.listFrom(inputTensor)).toTuple();
         final Map<String, IValue> map = outputTuple[1].toList()[0].toDictStringKey();
-        float[] boxesData = new float[]{};
-        float[] scoresData = new float[]{};
-        long[] labelsData = new long[]{};
+        float[] boxesData;
+        float[] scoresData;
+        long[] labelsData;
 
         Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
@@ -159,8 +164,6 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
                 outputs[PrePostProcessor.OUTPUT_COLUMN * count + 4] = scoresData[i];
                 outputs[PrePostProcessor.OUTPUT_COLUMN * count + 5] = labelsData[i] - 1;
                 count++;
-
-                System.out.println("Test");
             }
 
             // getting rid of the shifting box by giving up the scaling
@@ -171,14 +174,17 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
 
             final ArrayList<Result> results = PrePostProcessor.outputsToPredictions(count, outputs, imgScaleX, imgScaleY, ivScaleX, ivScaleY, 0, 0);
 
+            // getting the size of total objects
             final int n_label = results.size();
             for (int i = 0; i<n_label; i++)
             {
-
+                // for each object, check if it obeys the "conditions"
                 float boxSizeRatio = getObjectSizeRatio(results.get(i),0);
                 if (boxSizeRatio > 0.17 && withinBox(results.get(i))) //If result is greater than 1/6 of total screen
                 {
+                    // vibrate accordingly
                     v.vibrate(VibrationEffect.createOneShot((int)(1000 * boxSizeRatio), (int)(255*boxSizeRatio)));
+                    // speak accordingly
                     speak(getDirection(results.get(i)));
                 }
 
@@ -186,8 +192,6 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
             }
             if (results.stream().noneMatch(result -> result.classIndex == 0)) mTTS.stop(); //Stop speech if no more person detected.
 
-
-            System.out.println(n_label);
             return new AnalysisResult(results);
         }
         return null;
@@ -223,6 +227,11 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
         return -1f;
     }
 
+    /**
+     * check if the center point of the result object falls within the virtual box
+     * @param result the post processed result for the object
+     * @return true when the center point of the result object is within the box, false otherwise
+     */
     private boolean withinBox(Result result){
         // check if the object is within the box
         // set up the virtual box
@@ -235,6 +244,11 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
         return VB.contains(resultCenterX,resultCenterY);
     }
 
+    /**
+     * determine the object location relative to the user
+     * @param result the post processed result for the object
+     * @return 0: if the object lies ahead of the user; 1: if the object locates on the left of the user; 2: if the object locates on the right of the user
+     */
     private int getDirection(Result result){
         // set up the virtual box
         Rect VB = getVirtualBox();
@@ -256,6 +270,10 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
         else return 2;
     }
 
+    /**
+     * handle the instructional speech
+     * @param direction the location of the object relative to the user
+     */
     private void speak(int direction) {
         //String text = "Person";
         CharSequence text = "";
@@ -279,6 +297,11 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
 
     }
 
+    /**
+     * a getter for virtual box
+     * to reduce redundancy
+     * @return the virtual box
+     */
     private Rect getVirtualBox(){
         Utilities helper = new Utilities();
         DisplayMetrics displayMetrics = new DisplayMetrics();

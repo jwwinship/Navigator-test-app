@@ -11,6 +11,10 @@ import android.graphics.Rect;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+/**
+ * class Result
+ * to store the object class index, detection score and the bounding box
+ */
 class Result {
     int classIndex;
     Float score;
@@ -23,6 +27,10 @@ class Result {
     }
 };
 
+/**
+ * class PrePostProcessor
+ * handle the result processing
+ */
 public class PrePostProcessor {
     // for yolov5 model, no need to apply MEAN and STD
     public final static float[] NO_MEAN_RGB = new float[] {0.0f, 0.0f, 0.0f};
@@ -36,7 +44,7 @@ public class PrePostProcessor {
     static String[] mClasses;
     static int[] classesToDetect = new int[]{0,61,68}; // 0:person, 61:chair, 68:potted plant
 
-
+    // finalize the results
     static ArrayList<Result> outputsToPredictions(int countResult, float[] outputs, float imgScaleX, float imgScaleY, float ivScaleX, float ivScaleY, float startX, float startY) {
         ArrayList<Result> results = new ArrayList<>();
         for (int i = 0; i< countResult; i++) {
