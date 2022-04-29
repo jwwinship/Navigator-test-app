@@ -15,6 +15,7 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -27,6 +28,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -52,12 +54,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * class MainActivity
+ * handles all main application activities (create, UI ,and etc.)
+ */
 public class MainActivity extends AppCompatActivity implements Runnable {
 
 static {
     if (!NativeLoader.isInitialized()) {
         NativeLoader.init(new SystemDelegate());
     }
+    // loading pytorch and torchvision
     NativeLoader.loadLibrary("pytorch_jni");
     NativeLoader.loadLibrary("torchvision_ops");
 }
@@ -99,6 +106,7 @@ static {
         mResultView = findViewById(R.id.resultView);
         mResultView.setVisibility(View.INVISIBLE);
 
+        // handles the "Test Image" button
         final Button buttonTest = findViewById(R.id.testButton);
         buttonTest.setText(("Test Image 1/3"));
         buttonTest.setOnClickListener(new View.OnClickListener() {
@@ -117,7 +125,7 @@ static {
             }
         });
 
-
+        // handles "Select" button
         final Button buttonSelect = findViewById(R.id.selectButton);
         buttonSelect.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -147,6 +155,7 @@ static {
             }
         });
 
+        // handles "Live" button
         final Button buttonLive = findViewById(R.id.liveButton);
         buttonLive.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -178,6 +187,7 @@ static {
         });
 
         try {
+            // try quantized d2go model
             mModule = PyTorchAndroid.loadModuleFromAsset(getAssets(), "d2go.pt");
 
             BufferedReader br = new BufferedReader(new InputStreamReader(getAssets().open("classes.txt")));
@@ -260,10 +270,13 @@ static {
             scoresData = scoresTensor.getDataAsFloatArray();
             labelsData = labelsTensor.getDataAsLongArray();
 
+            // set up virtual box
             DisplayMetrics displayMetrics = new DisplayMetrics();
             getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
             int height = displayMetrics.heightPixels;
             int width = displayMetrics.widthPixels;
+            Utilities helper = new Utilities();
+            Rect VB = helper.setupVirtualBox(height,width);
 
             final int n = scoresData.length;
             float[] outputs = new float[n * PrePostProcessor.OUTPUT_COLUMN];
@@ -278,29 +291,19 @@ static {
                 outputs[PrePostProcessor.OUTPUT_COLUMN * count + 3] = boxesData[4 * i + 3];
                 outputs[PrePostProcessor.OUTPUT_COLUMN * count + 4] = scoresData[i];
                 outputs[PrePostProcessor.OUTPUT_COLUMN * count + 5] = labelsData[i] - 1;
-
-                System.out.println("S-----------------------------------------------------------------------------------------S");
-                System.out.println(labelsData[i]);
-                System.out.println("Xmin:"+boxesData[4 * i + 0]);
-                System.out.println("Ymin:"+boxesData[4 * i + 1]);
-                System.out.println("Xmax:"+boxesData[4 * i + 2]);
-                System.out.println("Ymax:"+boxesData[4 * i + 3]);
-                float screenSize = (float) height * width;
-                System.out.println("Height:"+height);
-                System.out.println("Width"+width);
-                System.out.println("Screen Size:"+ screenSize);
-                System.out.println("S-----------------------------------------------------------------------------------------S");
-
                 count++;
             }
 
+            // finalize all the results and store them in an array list
             final ArrayList<Result> results = PrePostProcessor.outputsToPredictions(count, outputs, mImgScaleX, mImgScaleY, mIvScaleX, mIvScaleY, mStartX, mStartY);
 
+            // execution order of the different threads
             runOnUiThread(() -> {
                 mButtonDetect.setEnabled(true);
                 mButtonDetect.setText(getString(R.string.detect));
                 mProgressBar.setVisibility(ProgressBar.INVISIBLE);
                 mResultView.setResults(results);
+                mResultView.setBox(VB);
                 mResultView.invalidate();
                 mResultView.setVisibility(View.VISIBLE);
             });

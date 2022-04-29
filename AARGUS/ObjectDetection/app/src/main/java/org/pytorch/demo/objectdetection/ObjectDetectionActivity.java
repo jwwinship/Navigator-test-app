@@ -35,6 +35,11 @@ import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.Map;
 
+/**
+ * class ObjectDetectionActivity
+ * handles all the object detection tasks
+ * Friend Reminder: Here is where the magic happens
+ */
 public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetectionActivity.AnalysisResult> {
     private Module mModule = null;
     private ResultView mResultView;
@@ -64,6 +69,8 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
 
     @Override
     protected void applyToUiAnalyzeImageResult(AnalysisResult result) {
+        Rect VB  = getVirtualBox();
+        mResultView.setBox(VB);
         mResultView.setResults(result.mResults);
         mResultView.invalidate();
     }
@@ -129,11 +136,11 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
 
         IValue[] outputTuple = mModule.forward(IValue.listFrom(inputTensor)).toTuple();
         final Map<String, IValue> map = outputTuple[1].toList()[0].toDictStringKey();
-        float[] boxesData = new float[]{};
-        float[] scoresData = new float[]{};
-        long[] labelsData = new long[]{};
+        float[] boxesData;
+        float[] scoresData;
+        long[] labelsData;
 
-        Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE); //TODO: Vibrator initialization
+        Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
         if (map.containsKey("boxes")) {
             final Tensor boxesTensor = map.get("boxes").toTensor();
@@ -157,87 +164,47 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
                 outputs[PrePostProcessor.OUTPUT_COLUMN * count + 4] = scoresData[i];
                 outputs[PrePostProcessor.OUTPUT_COLUMN * count + 5] = labelsData[i] - 1;
                 count++;
-
-                System.out.println("Test");
             }
 
-
-            float imgScaleX = (float) bitmap.getWidth() / PrePostProcessor.INPUT_WIDTH;
-            float imgScaleY = (float) bitmap.getHeight() / PrePostProcessor.INPUT_HEIGHT;
+            // getting rid of the shifting box by giving up the scaling
+            float imgScaleX = 1; //(float) bitmap.getWidth() / PrePostProcessor.INPUT_WIDTH;
+            float imgScaleY = 1; //(float) bitmap.getHeight() / PrePostProcessor.INPUT_HEIGHT;
             float ivScaleX = (float) mResultView.getWidth() / bitmap.getWidth();
             float ivScaleY = (float) mResultView.getHeight() / bitmap.getHeight();
 
             final ArrayList<Result> results = PrePostProcessor.outputsToPredictions(count, outputs, imgScaleX, imgScaleY, ivScaleX, ivScaleY, 0, 0);
-            //TODO: TEST LOCATION
-            //TEST CODE, delete if not working
 
+            // getting the size of total objects
             final int n_label = results.size();
             for (int i = 0; i<n_label; i++)
             {
-
-
-                /*if (results.get(i).classIndex == 0 || results.get(i).classIndex == 66 )// || labelsData[i] == 19 || labelsData[i] == 22)
+                // for each object, check if it obeys the "conditions"
+                float boxSizeRatio = getObjectSizeRatio(results.get(i),0);
+                if (boxSizeRatio > 0.17 && withinBox(results.get(i))) //If result is greater than 1/6 of total screen
                 {
-                    v.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE));
-                    //System.out.println(labelsData);
-                }*/
-
-                if (objectTooClose(results.get(i),0))
-                {
-
-                    v.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE));
-                    speak();
+                    // vibrate accordingly
+                    v.vibrate(VibrationEffect.createOneShot((int)(1000 * boxSizeRatio), (int)(255*boxSizeRatio)));
+                    // speak accordingly
+                    speak(getDirection(results.get(i)));
                 }
 
 
             }
             if (results.stream().noneMatch(result -> result.classIndex == 0)) mTTS.stop(); //Stop speech if no more person detected.
 
-
-            System.out.println(n_label);
             return new AnalysisResult(results);
         }
         return null;
     }
 
-
     /**
-     * Oliver
-     * A help function that indicates if an object is too close to the user.
-     * @return true if too close, false other wise
+     *
+     * Determines the ratio of the size of the detected object to the size of the device screen. Used to approximate how close an object is to the user.
+     * @param result The object prediction who's size we want to evaluate
+     * @param classToMatch The class of the object we want to test against. Will be obsolete once code is changed to only recognize useful classes.
+     * @return the ratio of the object size to the screen size. Will be a float value between 0 and 1. Returns -1 if something goes wrong.
      */
-    /*protected boolean objectTooClose(float[] boxesData, long[] labelsData, final int numOfObjects, int classIndex){
-
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-        int height = displayMetrics.heightPixels;
-        int width = displayMetrics.widthPixels;
-
-        for (int i = 0; i < numOfObjects; i++) {
-
-            // retrieve the box coordinate and the object label
-            float Xmin = boxesData[4 * i + 0];
-            float Ymin = boxesData[4 * i + 1];
-            float Xmax = boxesData[4 * i + 2];
-            float Ymax = boxesData[4 * i + 3];
-            long label = labelsData[i] - 1; // minus one to match up with the class index
-
-            // calculate the box area
-            float totalArea = (Xmax - Xmin) * (Ymax - Ymin);
-            System.out.println("Total Area: " + totalArea);
-
-            // calculate the screen area
-            float screenSize = (float) height * width;
-
-            if (label == classIndex){
-                if (totalArea > screenSize/10)return true;
-            }
-        }
-
-        return false;
-    }*/
-
-    protected boolean objectTooClose(Result result, int classToMatch){
+    protected float getObjectSizeRatio(Result result, int classToMatch) {
 
         DisplayMetrics displayMetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
@@ -255,15 +222,70 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
         float screenSize = (float) screenHeight * screenWidth;
 
         if (result.classIndex == classToMatch) {
-            return totalArea > screenSize / 10;
+            return totalArea / screenSize;
         }
-        return false;
-
+        return -1f;
     }
 
-    private void speak() {
+    /**
+     * check if the center point of the result object falls within the virtual box
+     * @param result the post processed result for the object
+     * @return true when the center point of the result object is within the box, false otherwise
+     */
+    private boolean withinBox(Result result){
+        // check if the object is within the box
+        // set up the virtual box
+        Rect VB = getVirtualBox();
+
+        // getting the center points of the result rect
+        int resultCenterX = result.rect.centerX();
+        int resultCenterY = result.rect.centerY();
+
+        return VB.contains(resultCenterX,resultCenterY);
+    }
+
+    /**
+     * determine the object location relative to the user
+     * @param result the post processed result for the object
+     * @return 0: if the object lies ahead of the user; 1: if the object locates on the left of the user; 2: if the object locates on the right of the user
+     */
+    private int getDirection(Result result){
+        // set up the virtual box
+        Rect VB = getVirtualBox();
+        int boxCenterX = VB.centerX();
+
+        // getting the center points of the result rect
+        int resultCenterX = result.rect.centerX();
+
+        // set up middle section width (the middle area is set to 100x2 pixels wide)
+        int middleLeft = boxCenterX - 100;
+        int middleRight = boxCenterX + 100;
+
+        // check if the center is on the left side or right side of the box or in the middle
+        // 0: middle  1: left  2: right
+        if (resultCenterX >= middleLeft && resultCenterX <= middleRight){
+            return 0;
+        }
+        else if (resultCenterX < middleLeft) return 1;
+        else return 2;
+    }
+
+    /**
+     * handle the instructional speech
+     * @param direction the location of the object relative to the user
+     */
+    private void speak(int direction) {
         //String text = "Person";
-        CharSequence text = "Stop, person ahead!";
+        CharSequence text = "";
+        // right in front
+        if (direction == 0) text = "Stop, person ahead!";
+
+        // on left
+        else if (direction == 1) text = "person on left!";
+
+        // on right
+        else text = "person on right!";
+
         float pitch = 1f;
         if (pitch < 0.1) pitch = 0.1f;
         float speed = 1f;
@@ -273,6 +295,20 @@ public class ObjectDetectionActivity extends AbstractCameraXActivity<ObjectDetec
         mTTS.setSpeechRate(speed);
         if (!mTTS.isSpeaking()) mTTS.speak(text, TextToSpeech.QUEUE_FLUSH, null, null);
 
+    }
+
+    /**
+     * a getter for virtual box
+     * to reduce redundancy
+     * @return the virtual box
+     */
+    private Rect getVirtualBox(){
+        Utilities helper = new Utilities();
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        int screenHeight = displayMetrics.heightPixels;
+        int screenWidth = displayMetrics.widthPixels;
+        return helper.setupVirtualBox(screenHeight,screenWidth);
     }
 
 }

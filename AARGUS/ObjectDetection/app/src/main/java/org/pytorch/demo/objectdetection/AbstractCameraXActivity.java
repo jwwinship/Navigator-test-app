@@ -8,6 +8,7 @@ package org.pytorch.demo.objectdetection;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.hardware.camera2.CameraMetadata;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.Size;
@@ -17,6 +18,7 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
 import androidx.annotation.WorkerThread;
+import androidx.camera.camera2.impl.Camera2CameraCaptureResultConverter;
 import androidx.camera.core.CameraX;
 import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageAnalysisConfig;
@@ -25,6 +27,13 @@ import androidx.camera.core.Preview;
 import androidx.camera.core.PreviewConfig;
 import androidx.core.app.ActivityCompat;
 
+/**
+ * abstract class AbstractCameraXActivity
+ * handles all activities (Creation, request, setup and other API calls) of the camera module
+ * extends from BaseModuleActivity
+ * Friendly Reminder: This class is a standard modular setup, you don't wanna touch this unless necessary
+ * @param <R>
+ */
 public abstract class AbstractCameraXActivity<R> extends BaseModuleActivity {
     private static final int REQUEST_CODE_CAMERA_PERMISSION = 200;
     private static final String[] PERMISSIONS = {Manifest.permission.CAMERA};
